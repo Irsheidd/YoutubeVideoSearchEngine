@@ -30,4 +30,12 @@ first = lowercased_data[:5]
 for item in first:
     print(item["title"], "||")
 
+combined_words = new_item["title"] + new_item["description"]
+new_item["unique_words"] = list(dict.fromkeys(combined_words))
 
+lowercased_data.append(new_item)
+
+first = lowercased_data[:5]
+for item in first:
+    print(item["title"], "||")
+    print("Unique words:", item["unique_words"], "\n")
