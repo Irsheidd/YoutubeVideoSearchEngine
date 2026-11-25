@@ -2,7 +2,7 @@
 
 A simple Information Retrieval system written in Python, built for the exercise
 "Ex1: Build a Search Engine Using YouTube Video Data". The full assignment text is in
-[Docs/Ex1_BuildASearchEngineUsingYouTubeVideoData.pdf](Docs/Ex1_BuildASearchEngineUsingYouTubeVideoData.pdf).
+[assignment/Ex1_BuildASearchEngineUsingYouTubeVideoData.pdf](assignment/Ex1_BuildASearchEngineUsingYouTubeVideoData.pdf).
 
 ## What the project is
 
@@ -15,10 +15,10 @@ The assignment is split into eight activities:
 | # | Activity | What it produces | Status |
 |---|---|---|---|
 | 1 | Collect the document collection | A dataset of at least 200 videos | Done (400 videos) |
-| 2 | Text processing | A cleaned collection of documents | In progress |
-| 3 | Inverted index | For every word, the sorted list of video IDs that contain it, plus its document frequency | Not started |
-| 4 | Query parser | A parser for `AND`, `OR`, `NOT` and parentheses that rejects invalid queries | Not started |
-| 5 | Boolean search | Query results: matching video IDs, their count, titles and URLs | Not started |
+| 2 | Text processing | A cleaned collection of documents | In progress (step 5 has a bug, see Current state) |
+| 3 | Inverted index | For every word, the sorted list of video IDs that contain it, plus its document frequency | Written, cannot run until Activity 2 is fixed |
+| 4 | Query parser | A parser for `AND`, `OR`, `NOT` and parentheses that rejects invalid queries | In progress (some invalid queries are accepted) |
+| 5 | Boolean search | Query results: matching video IDs, their count, titles and URLs | Written, cannot run until Activity 2 is fixed |
 | 6 | Query optimization and skip pointers | Faster `AND` queries, with a comparison count with and without skip pointers | Not started |
 | 7 | Biword index | Exact two-word phrase search, such as `"machine learning"` | Not started |
 | 8 | Evaluation | A short report based on at least 10 test queries | Not started |
@@ -42,16 +42,27 @@ The assignment is split into eight activities:
 ProjectFolder/
 ├── README.md
 ├── .gitignore
-├── Docs/
-│   ├── Dataset.json                                      the video dataset
-│   ├── Ex1_BuildASearchEngineUsingYouTubeVideoData.pdf   the assignment
-│   └── textprocessing.py                                 Activity 2 code
-└── ir/                                                   the virtual environment (not shared, see Setup)
+├── assignment/
+│   └── Ex1_BuildASearchEngineUsingYouTubeVideoData.pdf   the assignment
+├── data/
+│   └── Dataset.json           the video dataset (Activity 1)
+├── src/
+│   ├── textprocessing.py      Activity 2
+│   ├── inverted_index.py      Activity 3
+│   ├── query_parser.py        Activity 4
+│   └── boolean_search.py      Activity 5
+├── notebooks/                 the submission notebook (not created yet)
+└── ir/                        the virtual environment (not shared, see Setup)
 ```
+
+- All Python modules go in `src/`. They import each other by file name, so they
+  must stay in the same folder.
+- The dataset stays in `data/`, where the code in `src/` looks for it.
+- The Jupyter notebook for the final submission goes in `notebooks/`.
 
 ## The dataset
 
-`Docs/Dataset.json` is a list of 400 YouTube videos on the theme of Artificial
+`data/Dataset.json` is a list of 400 YouTube videos on the theme of Artificial
 Intelligence, from 216 different channels. Every video has the same six fields:
 
 | Field | Description |
@@ -74,7 +85,7 @@ shared with the project. Everyone who works on the project creates their own.
 
 You need Python 3.14 (the environment was built with 3.14.3).
 
-Run these commands in PowerShell from inside `ProjectFolder`:
+Run these commands in PowerShell from inside the project folder:
 
 ```powershell
 # 1. Create the virtual environment in a folder named "ir"
@@ -112,33 +123,48 @@ script fails with `ModuleNotFoundError: No module named 'nltk'`.
 
 1. Press `Ctrl+Shift+P`.
 2. Choose **Python: Select Interpreter**.
-3. Pick `ProjectFolder\ir\Scripts\python.exe`.
+3. Pick `ir\Scripts\python.exe` inside the project folder.
 
 ### Packages
 
 | Package | Version in use | Used for |
 |---|---|---|
-| `nltk` | 3.10.4 | Text processing helpers (stop words, tokenizer, stemmer) |
+| `nltk` | 3.10.4 | Imported by `textprocessing.py`, which downloads its data packages. None of its text functions are called yet |
 | `spacy` and `en_core_web_sm` | 3.8.18 and 3.8.0 | Installed, not used by the code yet |
 | `pandas` | 3.1.1 | Installed, not used by the code yet |
 | `ipykernel` | 7.4.0 | Running Jupyter notebooks inside the environment |
 
 ## Running the code
 
-With the environment active, from inside `ProjectFolder`:
+With the environment active, from inside the project folder:
 
 ```powershell
-python Docs\textprocessing.py
+python src\textprocessing.py    # Activity 2
+python src\inverted_index.py    # Activity 3
+python src\query_parser.py      # Activity 4
+python src\boolean_search.py    # Activity 5
 ```
 
-The first run needs an internet connection: the script downloads the NLTK data
-packages `punkt`, `stopwords` and `wordnet` into your user folder. Later runs
+| Module | Imports from |
+|---|---|
+| `textprocessing.py` | none of the other modules |
+| `inverted_index.py` | `textprocessing.py` |
+| `query_parser.py` | none of the other modules |
+| `boolean_search.py` | `textprocessing.py`, `inverted_index.py`, `query_parser.py` |
+
+Only `query_parser.py` runs to the end at the moment. The other three stop with
+`KeyError: 'unique_words'` (see Current state).
+
+The first run needs an internet connection: `textprocessing.py` downloads the NLTK
+data packages `punkt`, `stopwords` and `wordnet` into your user folder. Later runs
 only check that they are up to date.
 
-The script finds `Dataset.json` relative to its own location, so it works from
-any folder as long as the two files stay in the same folder.
+The code finds `data/Dataset.json` relative to its own location, so it works from
+any folder as long as `src/` and `data/` stay next to each other.
 
-## Current state of the text processing (Activity 2)
+## Current state
+
+### Text processing (Activity 2)
 
 | Step | Status | How it is done |
 |---|---|---|
@@ -146,10 +172,13 @@ any folder as long as the two files stay in the same folder.
 | 2. Convert to lowercase | Done | `str.lower()` |
 | 3. Remove punctuation | Done | Every character that is not a letter, digit, underscore or whitespace is replaced with a space |
 | 4. Split into words | Done | `str.split()` on whitespace |
-| 5. Handle repeated words | Not done | |
+| 5. Handle repeated words | Has a bug | `dict.fromkeys` keeps each word of the title and description once, in `unique_words` |
 | 6. Keep a consistent document ID | Done | Each cleaned video keeps its `video_id` |
 
-The script currently prints the word lists of the first five titles.
+**Known bug in step 5:** the lines that create `unique_words` are outside the loop,
+so they run only for the last video. That video is also added to the collection
+twice. The script then stops with `KeyError: 'unique_words'`, and so does every
+module that imports it.
 
 Things to know about the current behaviour:
 
@@ -157,9 +186,36 @@ Things to know about the current behaviour:
   was: `humanity's` becomes `humanity` and `s`, and a URL breaks into several
   small words.
 - The `channel` field is cleaned and split in the same way as the title and
-  description, although the assignment only asks for those two.
+  description, although the assignment only asks for those two. It is not part of
+  `unique_words`, so it is not searchable.
 - The cleaned data exists only in memory while the script runs. Nothing is
   written to disk, and `Dataset.json` is never modified.
 - The word lists keep their original order and their repeated words. Activity 7
-  (biword index) needs that order, so step 5 should add a separate collection of
-  unique words and leave the ordered lists as they are.
+  (biword index) needs that order.
+
+### Inverted index (Activity 3)
+
+Maps each term to its document frequency (`df`) and its sorted list of video IDs
+without duplicates (`doc_ids`). `show_inverted_index` displays chosen terms, or the
+10 most frequent ones.
+
+### Query parser (Activity 4)
+
+Converts a query to postfix form with the Shunting-Yard algorithm. Operators are
+recognized in upper or lower case.
+
+Known limitations:
+
+- Only mismatched parentheses are rejected by the parser itself. Other errors, such
+  as `artificial AND` or two words with no operator, are only caught later by the
+  Boolean search.
+- Some invalid queries are accepted, such as `artificial NOT` and
+  `artificial machine AND`.
+- The valid query `NOT NOT data` is rejected during the search.
+- Quotation marks are ignored, so phrases are not recognized.
+
+### Boolean search (Activity 5)
+
+Evaluates the postfix query with a stack. `AND`, `OR` and `NOT` each walk through
+the sorted posting lists with two pointers. The results show the query, the number
+of matches, and the ID, title and URL of each matching video.

@@ -10,8 +10,8 @@ nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
 
-BASE_DIR = Path(__file__).parent
-DATASET_PATH = BASE_DIR / "Dataset.json"
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATASET_PATH = BASE_DIR / "data" / "Dataset.json"
 
 with open(DATASET_PATH, "r", encoding="utf-8") as file:
     data = json.load(file)

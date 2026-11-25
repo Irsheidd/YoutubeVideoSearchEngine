@@ -102,7 +102,7 @@ def show_search_results(query, matching_doc_ids, video_lookup):
     print("-" * 40)
 
 if __name__ == "__main__":
-    dataset_path = Path(__file__).parent / "Dataset.json"
+    dataset_path = Path(__file__).resolve().parent.parent / "data" / "Dataset.json"
     with open(dataset_path, "r", encoding="utf-8") as file:
         raw_videos = json.load(file)
 
