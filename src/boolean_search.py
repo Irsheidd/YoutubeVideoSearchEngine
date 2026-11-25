@@ -116,7 +116,10 @@ if __name__ == "__main__":
         "data AND NOT science",
         "(artificial AND intelligence) OR (machine AND learning)",
         "NOT data",
-        "artificial AND (intelligence OR machine) AND NOT data"
+        "artificial AND (intelligence OR machine) AND NOT data",
+        "machine OR robotics",
+        "artificial AND NOT robotics",
+        "(machine OR deep) AND learning"
     ]
 
     for query in test_queries:
