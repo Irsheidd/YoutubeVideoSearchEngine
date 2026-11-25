@@ -1,9 +1,16 @@
-# 
+import math 
 from textprocessing import lowercased_data
+
+def create_skips(doc_ids, min_length=10):
+    skips = {}
+    if len(doc_ids) >= min_length:
+        step = int(math.sqrt(len(doc_ids)))
+        for i in range(0, len(doc_ids) - step, step):
+            skips[i] = i + step
+    return skips
 
 def build_inverted_index(documents):
     temp_index={}
-
     for doc in documents:
         doc_id= doc["video_id"]
         for term in doc["unique_words"]:
@@ -16,7 +23,8 @@ def build_inverted_index(documents):
         sorted_doc_ids = sorted(temp_index[term])
         inverted_index[term] = {
             "df": len(sorted_doc_ids),
-            "doc_ids": sorted_doc_ids
+            "doc_ids": sorted_doc_ids,
+            "skips": create_skips(sorted_doc_ids)
         }
     return inverted_index
 
@@ -38,4 +46,3 @@ def show_inverted_index(inverted_index, terms=None):
 if __name__ == "__main__":
     inverted_index = build_inverted_index(lowercased_data)
     show_inverted_index(inverted_index, terms=["artificial", "intelligence", "machine","learning", "data", "science"])
-
